@@ -1,23 +1,39 @@
 <script lang="ts">
 	let sentence = $state('');
 	let feedback = $state('');
+	let loading = $state(false);
 
-	function checkSentence() {
-		console.log('button clicked', sentence);
-		feedback = 'Correct sentence: She goes to school. Use “goes” with she.';
+	async function checkSentence() {
+		loading = true;
+		feedback = '';
+
+		const res = await fetch('/api/check', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ sentence })
+		});
+
+		const data = await res.json();
+		feedback = data.feedback;
+		loading = false;
 	}
 </script>
 
 <h1>AI Grammar Tutor for Dyslexic Learners</h1>
 
-<textarea bind:value={sentence}></textarea>
+<p>Write an English sentence and AI will explain the grammar simply.</p>
 
-<button onclick={checkSentence}>Check Sentence</button>
+<textarea bind:value={sentence} placeholder="Example: She go to school"></textarea>
 
-<h2>Feedback:</h2>
-<p style="background: yellow; color: black; padding: 20px; font-size: 24px;">
-	{feedback}
-</p>
+<button onclick={checkSentence}>
+	{loading ? 'Checking...' : 'Check Sentence'}
+</button>
+
+{#if feedback}
+	<div class="feedback">
+		{feedback}
+	</div>
+{/if}
 
 <style>
 	textarea {
@@ -40,5 +56,6 @@
 		color: black;
 		font-size: 22px;
 		border: 3px solid green;
+		white-space: pre-wrap;
 	}
 </style>
